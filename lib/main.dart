@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'task_repository.dart';
 
+import '../services/task_api_service.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -26,6 +28,16 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String filter = "wszystkie";
   String selectedFilter = "wszystkie";
+
+  bool isLoading = true; // flaga ladowania aplikacji
+  late Future<List<Task>> _tasksFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // zapytanie wysylane tylko raz przy starcie
+    _tasksFuture = TaskApiService.fetchTasks();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,12 +83,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.pop(context);
 
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar( // Poprawiono z snackBar na SnackBar
+                            const SnackBar(
                               content: Text("Usunięto wszystkie zadania!"),
                             ),
                           );
                         },
-                        child: const Text("Usuń"), // Dodano brakujący tekst przycisku
+                        child: const Text("Usuń")
                       ),
                     ],
                   );
@@ -444,6 +456,37 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class TaskListScreen extends StatefulWidget {
+  const TaskListScreen({super.key});
+  @override
+  State<TaskListScreen> createState() => _TaskListScreenState();
+}
+
+class _TaskListScreenState extends State<TaskListScreen> {
+  late Future<List<Task>> tasksFuture;
+  @override
+  void initState() {
+    super.initState();
+    tasksFuture = TaskApiService.fetchTasks();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Task>>(
+      future: tasksFuture,
+      builder: (context, snapshot) {
+        final tasks = snapshot.data ?? [];
+        return ListView.builder(
+          itemCount: tasks.length,
+          itemBuilder: (context, index) {
+          // widget TaskCard dla każdego elementu
+          },
+        );
+      },
     );
   }
 }
