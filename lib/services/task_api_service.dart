@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 
 import '../task_repository.dart';
@@ -15,12 +16,19 @@ class TaskApiService {
       final data = jsonDecode(response.body);
       final List todos = data["todos"];
 
+      final random = Random();
+      final priorities = ["niski", "średni", "wysoki"];
+
       return todos.map((todo) {
+        final randomPriority = priorities[random.nextInt(priorities.length)];
+        final randomDay = random.nextInt(28) + 1;
+        final randomDeadline = "$randomDay.05.2026";
+
         return Task(
           title: todo["todo"],
-          deadline: "brak", // brak w API -> mockujemy
+          deadline: randomDeadline,
           done: todo["completed"],
-          priority: "średni", // brak w API -> mockujemy
+          priority: randomPriority,
         );
       }).toList();
     } else {

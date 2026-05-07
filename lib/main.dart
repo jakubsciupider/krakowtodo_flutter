@@ -155,6 +155,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontStyle: FontStyle.italic
               ),
             ),
+            // pobierane taski z API
+            Expanded(
+              child: TaskListScreen(filter: selectedFilter),
+            )
+            /* statyczne wyswietlanie taskow
             Expanded(
               child: ListView.builder(
                 // zamiast wyszukiwac wszystkie taski z taskrepository to korzysta sie z filtrowanych taskow
@@ -210,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-            ),
+            ), */
           ],
         ),
       ),
@@ -461,7 +466,8 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
 }
 
 class TaskListScreen extends StatefulWidget {
-  const TaskListScreen({super.key});
+  final String filter;
+  const TaskListScreen({super.key, required this.filter});
   @override
   State<TaskListScreen> createState() => _TaskListScreenState();
 }
@@ -479,11 +485,39 @@ class _TaskListScreenState extends State<TaskListScreen> {
     return FutureBuilder<List<Task>>(
       future: tasksFuture,
       builder: (context, snapshot) {
-        final tasks = snapshot.data ?? [];
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text("Błąd: ${snapshot.error}"));
+        }
+
+        // pobieranie i filtrowanie taskow
+        final allTasks = snapshot.data ?? [];
+
+        final filteredTasks = allTasks.where((task) {
+          if (widget.filter == "wykonane") return task.done;
+          if (widget.filter == "do zrobienia") return !task.done;
+          return true;
+        }).toList();
+
+        if (filteredTasks.isEmpty) {
+          return const Center(child: Text("Brak zadań dla tego filtra"));
+        }
+
         return ListView.builder(
-          itemCount: tasks.length,
+          itemCount: filteredTasks.length,
           itemBuilder: (context, index) {
-          // widget TaskCard dla każdego elementu
+            final task = filteredTasks[index];
+            return TaskCard(
+              title: task.title,
+              subtitle: "Deadline: ${task.deadline}\nPriorytet: ${task.priority}",
+              done: task.done,
+              onChanged: (value) {
+                setState(() => task.done = value!);
+              },
+            );
           },
         );
       },
