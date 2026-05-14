@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
+import '../models/task.dart';
 
 import '../task_repository.dart';
 
@@ -25,6 +26,7 @@ class TaskApiService {
         final randomDeadline = "$randomDay.05.2026";
 
         return Task(
+          id: todo["id"],
           title: todo["todo"],
           deadline: randomDeadline,
           done: todo["completed"],
